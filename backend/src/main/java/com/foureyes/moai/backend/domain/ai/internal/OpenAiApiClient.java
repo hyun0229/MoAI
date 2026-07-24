@@ -15,12 +15,24 @@ import java.util.Map;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class OpenAiApiClient {
+public class OpenAiApiClient implements AiApiClient {
+
+    private static final String OPENAI_URL = "https://api.openai.com/v1/chat/completions";
 
     private final WebClient webClient;
 
-    @Value("${GMS_API_KEY}")
+    @Value("${OPENAI_API_KEY}")
     private String openAiApiKey;
+
+    @Override
+    public AiProvider getProvider() {
+        return AiProvider.OPENAI;
+    }
+
+    @Override
+    public Mono<String> generate(String modelId, String prompt) {
+        return chatCompletions(OPENAI_URL, modelId, prompt);
+    }
 
     /** OpenAI chat.completions (풀 URL, Bearer 헤더) */
     public Mono<String> chatCompletions(String fullApiUrl, String modelId, String prompt) {

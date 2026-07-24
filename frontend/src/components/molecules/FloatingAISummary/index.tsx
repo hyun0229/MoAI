@@ -214,6 +214,8 @@ const FloatingAISummary: React.FC<FloatingAISummaryProps> = ({
               <option value="gpt-4o-mini">GPT-4o Mini</option>
               <option value="gemini-2.0-flash">gemini-2.0-flash</option>
               <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite</option>
+              <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite</option>
+              <option value="gemini-3.6-flash">gemini-3.6-flash</option>
             </select>
           </div>
 

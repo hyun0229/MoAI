@@ -7,10 +7,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class ModelResolver {
 
-    private static final String GMS_PROXY_BASE = "https://gms.ssafy.io/gmsapi/";
-    private static final String GEMINI_HOST_PATH = "generativelanguage.googleapis.com/v1beta/models/";
-    private static final String OPENAI_PATH = "api.openai.com/v1/chat/completions";
-
     /**
      * 프론트에서 넘어온 modelType이 없거나 잘못되면 즉시 400.
      * (기존처럼 기본값 사용하지 않음)
@@ -27,13 +23,4 @@ public class ModelResolver {
         }
     }
 
-    // 제미니 generateContent (GMS 프록시 경유)
-    public String buildGeminiApiUrl(String geminiModelId) {
-        return GMS_PROXY_BASE + GEMINI_HOST_PATH + geminiModelId + ":generateContent";
-    }
-
-    // 오픈AI chat.completions (GMS 프록시 경유)
-    public String openAiCompletionsUrl() {
-        return GMS_PROXY_BASE + OPENAI_PATH;
-    }
 }

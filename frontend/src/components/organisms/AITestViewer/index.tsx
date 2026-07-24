@@ -34,6 +34,11 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/b
 // 하이라이트 유틸리티 함수들
 const norm = (s: string) => (s || '').replace(/\s+/g, ' ').trim()
 
+const PDF_OPTIONS = {
+  cMapUrl: `//unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
+  cMapPacked: true,
+}
+
 const trigrams = (s: string) => {
   const t = norm(s)
   if (t.length < 3) return new Set([t])
@@ -353,6 +358,7 @@ const AITestViewer: React.FC<AITestViewerProps> = ({
         <div className="bg-white rounded-lg shadow overflow-auto" style={{ height: 'calc(100% - 80px)' }}>
           <Document
             file={selectedPdf.url}
+            options={PDF_OPTIONS}
             onLoadSuccess={({ numPages }) => {
               setNumPages(numPages)
               setCurrentPage(p => Math.min(Math.max(1, p), numPages))

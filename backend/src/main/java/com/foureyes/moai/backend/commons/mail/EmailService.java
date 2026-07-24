@@ -51,9 +51,13 @@ public class EmailService {
 
             mailSender.send(message);
             log.info("이메일 전송 성공: to={}, type={}, link={}", to, type, verificationLink);
-        } catch (MessagingException e) {
-            log.error("이메일 전송 실패: to={}, type={}, error={}", to, type, e.getMessage());
-            throw new RuntimeException("이메일 전송에 실패했습니다.", e);
+        }catch (Exception e) {
+            log.error("이메일 전송 실패 (로컬 데모라 무시하고 진행): to={}, type={}, error={}", to, type, e.getMessage());
         }
+
+//        } catch (MessagingException e) {
+//            log.error("이메일 전송 실패: to={}, type={}, error={}", to, type, e.getMessage());
+//            throw new RuntimeException("이메일 전송에 실패했습니다.", e);
+//        }
     }
 }

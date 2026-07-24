@@ -14,17 +14,31 @@ import java.util.Map;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class GeminiApiClient {
+public class GeminiApiClient implements AiApiClient {
+
+    private static final String GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/";
 
     private final WebClient webClient;
 
-    @Value("${GMS_API_KEY}")
+    @Value("${GEMINI_API_KEY}")
     private String geminiApiKey;
+
+    @Override
+    public AiProvider getProvider() {
+        return AiProvider.GEMINI;
+    }
+
+    @Override
+    public Mono<String> generate(String modelId, String prompt) {
+        String fullApiUrl = GEMINI_BASE_URL + modelId + ":generateContent";
+        return generateContent(fullApiUrl, prompt);
+    }
 
     /** Gemini 호출 (풀 URL + key 쿼리) */
     public Mono<String> generateContent(String fullApiUrl, String prompt) {
         Map<String, Object> requestBody = Map.of(
-            "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt))))
+            "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt)))),
+            "generationConfig", Map.of("responseMimeType", "application/json")
         );
 
         log.info("Gemini 호출: {}", fullApiUrl);

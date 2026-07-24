@@ -51,7 +51,7 @@ const ContentManagementTemplate: React.FC<ContentManagementTemplateProps> = ({
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [modalTitle, setModalTitle] = useState('')
   const [modalDescription, setModalDescription] = useState('')
-  const [selectedModel, setSelectedModel] = useState('gpt-4o')
+  const [selectedModel, setSelectedModel] = useState('gemini-3.5-flash-lite')
   const [prompt, setPrompt] = useState('')
   const [isSelectAll, setIsSelectAll] = useState(false)
   const [selectionOrder, setSelectionOrder] = useState<string[]>([])
@@ -92,7 +92,7 @@ const ContentManagementTemplate: React.FC<ContentManagementTemplateProps> = ({
 
     // 선택된 항목이 실제로 변경된 경우에만 selectionOrder 업데이트
     if (currentSelectedSet.size !== prevSelectedSet.size ||
-        ![...currentSelectedSet].every(id => prevSelectedSet.has(id))) {
+      ![...currentSelectedSet].every(id => prevSelectedSet.has(id))) {
       const newOrder = selectionOrder.filter(id => currentSelected.includes(id))
       const newSelections = currentSelected.filter(id => !selectionOrder.includes(id))
       setSelectionOrder([...newOrder, ...newSelections])

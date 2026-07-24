@@ -88,9 +88,17 @@ public class AiServiceImpl implements AiService {
             String summaryJson = aiClientRouter
                     .generateJsonArray(req.getModelType(), prompt)
                     .block();
-            List<SummaryDto> parsed = summaryParser.parse(summaryJson);
-            log.info("AI 요약 파싱 결과: {} items", parsed.size());
 
+            List<SummaryDto> parsed;
+            try {
+                parsed = summaryParser.parse(summaryJson);
+            } catch (RuntimeException parseError) {
+                log.warn("AI 응답 파싱 완전 실패, AI 1회 재호출 시도");
+                summaryJson = aiClientRouter.generateJsonArray(req.getModelType(), prompt).block();
+                parsed = summaryParser.parse(summaryJson);
+            }
+            log.info("AI 요약 파싱 결과: {} items", parsed.size());
+            
             AiSummary summary = AiSummary.builder()
                 .owner(owner)
                 .title(Optional.ofNullable(req.getTitle()).orElse("").trim())
