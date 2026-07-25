@@ -11,6 +11,7 @@ import java.util.List;
 public interface AiSummaryDocumentRepository extends JpaRepository<AiSummaryDocument, Integer> {
     boolean existsBySummary_IdAndDocument_Id(int summaryId, int documentId);
     long deleteBySummary_Id(int summaryId);
+    long deleteByDocument_Id(int documentId);
 
     @Query("""
         select new com.foureyes.moai.backend.domain.ai.dto.query.SidebarRow(

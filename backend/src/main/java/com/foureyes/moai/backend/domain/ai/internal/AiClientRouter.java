@@ -14,18 +14,17 @@ import java.util.stream.Collectors;
 public class AiClientRouter {
 
     private final ModelResolver modelResolver;
-    private final Map<AiProvider, AiApiClient> clientsByProvider;
+    private final Map<String, AiApiClient> clientsByProvider;
 
     public AiClientRouter(ModelResolver modelResolver, List<AiApiClient> clients) {
         this.modelResolver = modelResolver;
         this.clientsByProvider = clients.stream()
-            .collect(Collectors.toMap(AiApiClient::getProvider, Function.identity()));
+            .collect(Collectors.toMap(AiApiClient::getProviderName, Function.identity()));
     }
 
     /** requestedModelKey에 따라 적절한 백엔드 호출 */
     public Mono<String> generateJsonArray(String requestedModelKey, String prompt) {
-        ModelOption option = modelResolver.resolveOption(requestedModelKey);
-
+        ModelEntry option = modelResolver.resolveOption(requestedModelKey);
         AiApiClient client = clientsByProvider.get(option.getProvider());
         if (client == null) {
             throw new CustomException(ErrorCode.INVALID_REQUEST);

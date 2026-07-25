@@ -1,0 +1,14 @@
+ai:
+  models:
+    - modelId: gemini-2.0-flash-lite
+      provider: GEMINI
+    - modelId: gemini-2.0-flash
+      provider: GEMINI
+    - modelId: gemini-3.5-flash-lite
+      provider: GEMINI
+    - modelId: gemini-3.6-flash
+      provider: GEMINI
+    - modelId: gpt-4o
+      provider: OPENAI
+    - modelId: gpt-4o-mini
+      provider: OPENAI

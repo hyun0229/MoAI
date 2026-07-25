@@ -1,7 +1,5 @@
-
 package com.foureyes.moai.backend.domain.ai.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.foureyes.moai.backend.commons.exception.CustomException;
 import com.foureyes.moai.backend.commons.exception.ErrorCode;
 import com.foureyes.moai.backend.commons.util.StorageService;
@@ -26,6 +24,7 @@ import com.foureyes.moai.backend.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
@@ -49,14 +48,18 @@ public class AiServiceImpl implements AiService {
     // 역할별 컴포넌트
     private final PdfTextExtractor pdfTextExtractor;
     private final PromptBuilder promptBuilder;
-    private final ModelResolver modelResolver;
-    private final GeminiApiClient geminiApiClient;
     private final SummaryParser summaryParser;
-    private final ObjectMapper objectMapper;
 
     private final AiClientRouter aiClientRouter;
+    private final AiSummaryPersistenceService aiSummaryPersistenceService;
 
+    /**
+     * 클래스 레벨 @Transactional을 이 메서드만 무효화한다.
+     * PDF 추출 + AI 호출(수 초 이상 걸릴 수 있음) 동안 DB 커넥션을 붙잡고 있지 않기 위함.
+     * 실제 DB 저장은 aiSummaryPersistenceService.save()에서 짧게 트랜잭션으로 묶는다.
+     */
     @Override
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public CreateAiSummaryResponse createSummary(int ownerId, CreateAiSummaryRequest req) {
         if (req.getFileId() == null || req.getFileId().isEmpty()) {
             throw new CustomException(ErrorCode.INVALID_REQUEST);
@@ -85,6 +88,7 @@ public class AiServiceImpl implements AiService {
 
             String prompt = promptBuilder.buildMultiDocPrompt(joinedBlocks, req.getPromptType());
 
+            // --- 여기까지 DB 트랜잭션이 전혀 열려있지 않은 상태로 진행됨 ---
             String summaryJson = aiClientRouter
                     .generateJsonArray(req.getModelType(), prompt)
                     .block();
@@ -98,24 +102,9 @@ public class AiServiceImpl implements AiService {
                 parsed = summaryParser.parse(summaryJson);
             }
             log.info("AI 요약 파싱 결과: {} items", parsed.size());
-            
-            AiSummary summary = AiSummary.builder()
-                .owner(owner)
-                .title(Optional.ofNullable(req.getTitle()).orElse("").trim())
-                .description(Optional.ofNullable(req.getDescription()).orElse("").trim())
-                .modelType(req.getModelType())
-                .promptType(Optional.ofNullable(req.getPromptType()).orElse("").trim())
-                .summaryJson(objectMapper.readTree(summaryJson))
-                .build();
-            aiSummaryRepository.save(summary);
 
-            for (Document d : docs) {
-                if (!aiSummaryDocumentRepository.existsBySummary_IdAndDocument_Id(summary.getId(), d.getId())) {
-                    aiSummaryDocumentRepository.save(
-                        AiSummaryDocument.builder().summary(summary).document(d).build()
-                    );
-                }
-            }
+            // --- DB 저장만 별도 Bean에서 짧게 트랜잭션으로 처리 ---
+            AiSummary summary = aiSummaryPersistenceService.save(owner, req, summaryJson, docs);
 
             return CreateAiSummaryResponse.builder()
                 .summary_id(summary.getId())
@@ -127,6 +116,9 @@ public class AiServiceImpl implements AiService {
 
         } catch (CustomException e) {
             throw e;
+        } catch (org.springframework.web.reactive.function.client.WebClientResponseException.TooManyRequests e) {
+            log.warn("AI API 호출 한도 초과 (429): {}", e.getMessage());
+            throw new RuntimeException("AI 서비스 호출 한도를 초과했습니다. 잠시 후 다시 시도해주세요.", e);
         } catch (Exception e) {
             log.error("AI 요약 생성 실패", e);
             throw new RuntimeException("AI 요약 생성에 실패했습니다.", e);
@@ -164,7 +156,7 @@ public class AiServiceImpl implements AiService {
                 id -> SidebarSummariesResponse.StudyBlock.builder()
                     .studyId(r.getStudyId())
                     .name(r.getStudyName())
-                    .studyImg(r.getStudyImg()) // StudyGroup.imageUrl 매핑
+                    .studyImg(r.getStudyImg())
                     .summaries(new ArrayList<>())
                     .build()
             );
@@ -210,12 +202,10 @@ public class AiServiceImpl implements AiService {
         AiSummary summary = aiSummaryRepository.findById(summaryId)
             .orElseThrow(() -> new CustomException(ErrorCode.SUMMARY_NOT_FOUND));
 
-        // 권한 확인
         if (summary.getOwner().getId() != userId) {
             throw new CustomException(ErrorCode.FORBIDDEN_SUMMARY_ACCESS);
         }
 
-        // 변경
         summary.setTitle(request.getTitle().trim());
         summary.setDescription(request.getDescription() != null ? request.getDescription().trim() : null);
 
@@ -227,7 +217,6 @@ public class AiServiceImpl implements AiService {
         AiSummary summary = aiSummaryRepository.findById(summaryId)
             .orElseThrow(() -> new CustomException(ErrorCode.SUMMARY_NOT_FOUND));
 
-        // 소유자 권한 체크
         if (summary.getOwner() == null || summary.getOwner().getId() != userId) {
             throw new CustomException(ErrorCode.FORBIDDEN_SUMMARY_ACCESS);
         }

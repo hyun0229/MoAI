@@ -17,17 +17,16 @@ import java.util.Map;
 public class GeminiApiClient implements AiApiClient {
 
     private static final String GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/";
-
+    public static final String PROVIDER_NAME = "GEMINI";
     private final WebClient webClient;
 
     @Value("${GEMINI_API_KEY}")
     private String geminiApiKey;
 
     @Override
-    public AiProvider getProvider() {
-        return AiProvider.GEMINI;
+    public String getProviderName() {
+        return PROVIDER_NAME;
     }
-
     @Override
     public Mono<String> generate(String modelId, String prompt) {
         String fullApiUrl = GEMINI_BASE_URL + modelId + ":generateContent";

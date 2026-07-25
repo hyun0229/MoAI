@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -18,6 +17,7 @@ import java.util.Map;
 public class OpenAiApiClient implements AiApiClient {
 
     private static final String OPENAI_URL = "https://api.openai.com/v1/chat/completions";
+    public static final String PROVIDER_NAME = "OPENAI";
 
     private final WebClient webClient;
 
@@ -25,8 +25,8 @@ public class OpenAiApiClient implements AiApiClient {
     private String openAiApiKey;
 
     @Override
-    public AiProvider getProvider() {
-        return AiProvider.OPENAI;
+    public String getProviderName() {
+        return PROVIDER_NAME;
     }
 
     @Override
