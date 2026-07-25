@@ -5,6 +5,7 @@ const FloatingAISummary: React.FC<FloatingAISummaryProps> = ({
   title,
   description,
   selectedModel,
+  availableModels,
   prompt,
   isSelectAll,
   isVisible,
@@ -17,7 +18,7 @@ const FloatingAISummary: React.FC<FloatingAISummaryProps> = ({
   onContentRemove,
   onSubmit,
   onClose,
-  onSuccess, // 새로운 prop 추가
+  onSuccess,
 }) => {
   const [isDragging, setIsDragging] = useState(false)
   const [position, setPosition] = useState({ x: 0, y: 0 })
@@ -25,7 +26,6 @@ const FloatingAISummary: React.FC<FloatingAISummaryProps> = ({
   const [isLoading, setIsLoading] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // 화면 중앙에 위치하도록 초기 위치 설정
   useEffect(() => {
     const centerX = (window.innerWidth - 800) / 2
     const centerY = (window.innerHeight + 100) / 2
@@ -77,7 +77,7 @@ const FloatingAISummary: React.FC<FloatingAISummaryProps> = ({
     setIsLoading(true)
     try {
       const summaryData = {
-        fileId: selectedContents.map(content => parseInt(content.id)), // ContentItem.id를 number로 변환
+        fileId: selectedContents.map(content => parseInt(content.id)),
         title: title,
         description: description,
         modelType: selectedModel,
@@ -86,7 +86,6 @@ const FloatingAISummary: React.FC<FloatingAISummaryProps> = ({
 
       await onSubmit(summaryData)
 
-      // 성공 시 onSuccess 콜백 호출
       if (onSuccess) {
         onSuccess()
       }
@@ -210,12 +209,13 @@ const FloatingAISummary: React.FC<FloatingAISummaryProps> = ({
               onChange={(e) => onModelChange(e.target.value)}
               className="px-2 py-1 border-transparent rounded text-xs bg-white focus:outline-none focus:ring-1 focus:ring-purple-500"
             >
-              <option value="gpt-4o">GPT-4</option>
-              <option value="gpt-4o-mini">GPT-4o Mini</option>
-              <option value="gemini-2.0-flash">gemini-2.0-flash</option>
-              <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite</option>
-              <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite</option>
-              <option value="gemini-3.6-flash">gemini-3.6-flash</option>
+              {availableModels.length > 0 ? (
+                availableModels.map((model) => (
+                  <option key={model} value={model}>{model}</option>
+                ))
+              ) : (
+                <option value={selectedModel}>{selectedModel}</option>
+              )}
             </select>
           </div>
 

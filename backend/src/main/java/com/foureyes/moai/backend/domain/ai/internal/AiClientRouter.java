@@ -22,7 +22,6 @@ public class AiClientRouter {
             .collect(Collectors.toMap(AiApiClient::getProviderName, Function.identity()));
     }
 
-    /** requestedModelKey에 따라 적절한 백엔드 호출 */
     public Mono<String> generateJsonArray(String requestedModelKey, String prompt) {
         ModelEntry option = modelResolver.resolveOption(requestedModelKey);
         AiApiClient client = clientsByProvider.get(option.getProvider());

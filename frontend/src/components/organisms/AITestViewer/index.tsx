@@ -263,7 +263,7 @@ const AITestViewer: React.FC<AITestViewerProps> = ({
         className="bg-white border-r border-gray-200 p-4 overflow-y-auto"
         style={{ width: `${leftPanelWidth}px` }}
       >
-        <h3 className="text-lg font-semibold mb-4">인용문 목록 ({summaryList.length}개)</h3>
+        <h3 className="text-lg font-semibold mb-4">요약 목록 ({summaryList.length}개)</h3>
         <div className="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto">
           {summaryList.map((item: SummaryItem, idx: number) => (
             <button
@@ -286,7 +286,7 @@ const AITestViewer: React.FC<AITestViewerProps> = ({
           ))}
           {summaryList.length === 0 && (
             <div className="text-center text-gray-500 py-4">
-              인용문이 없습니다.
+              요약이 없습니다.
             </div>
           )}
         </div>

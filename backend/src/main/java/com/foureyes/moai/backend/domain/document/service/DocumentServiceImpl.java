@@ -3,6 +3,7 @@ package com.foureyes.moai.backend.domain.document.service;
 import com.foureyes.moai.backend.commons.exception.CustomException;
 import com.foureyes.moai.backend.commons.exception.ErrorCode;
 import com.foureyes.moai.backend.commons.util.StorageService;
+import com.foureyes.moai.backend.domain.ai.repository.AiSummaryDocumentRepository;
 import com.foureyes.moai.backend.domain.document.dto.response.DocumentRow;
 import com.foureyes.moai.backend.domain.document.dto.request.CreateDocumentRequest;
 import com.foureyes.moai.backend.domain.document.dto.request.EditDocumentRequest;
@@ -44,11 +45,11 @@ public class DocumentServiceImpl implements DocumentService{
     private final UserRepository userRepository;
     private final StorageService storageService;
     private final StudyMembershipRepository studyMembershipRepository;
+    private final AiSummaryDocumentRepository aiSummaryDocumentRepository;
 
     @Override
     @Transactional
     public DocumentResponseDto uploadDocument(int uploaderId, CreateDocumentRequest req) throws IOException {
-        // 1) 기본 검증
         if (req.getFile() == null || req.getFile().isEmpty()) {
             throw new IllegalArgumentException("파일이 비어있습니다.");
         }
@@ -59,7 +60,6 @@ public class DocumentServiceImpl implements DocumentService{
             throw new IllegalArgumentException("카테고리는 최소 1개 이상 선택해야 합니다.");
         }
 
-        // 2) 카테고리 조회 (+ 중복 제거)
         List<Integer> catIds = req.getCategoryId().stream()
             .filter(java.util.Objects::nonNull)
             .distinct()
@@ -70,7 +70,6 @@ public class DocumentServiceImpl implements DocumentService{
             throw new IllegalArgumentException("존재하지 않는 카테고리가 포함되어 있습니다.");
         }
 
-        // 2-1) 모든 카테고리가 같은 스터디에 속하는지 검증
         int studyId = categories.get(0).getStudyGroup().getId();
         boolean sameStudy = categories.stream()
             .allMatch(c -> c.getStudyGroup().getId() == studyId);
@@ -78,10 +77,8 @@ public class DocumentServiceImpl implements DocumentService{
             throw new IllegalArgumentException("서로 다른 스터디의 카테고리가 섞여 있습니다.");
         }
 
-        // 3) 스토리지 업로드 (PDF만 허용 / 비공개 버킷 / key 반환)
         String storedKey = storageService.uploadDocument(req.getFile(), studyId);
 
-        // 4) 문서 저장
         Document doc = Document.builder()
             .studyGroup(categories.get(0).getStudyGroup())
             .uploader(userRepository.getReferenceById(uploaderId))
@@ -91,7 +88,6 @@ public class DocumentServiceImpl implements DocumentService{
             .build();
         Document saved = documentRepository.save(doc);
 
-        // 5) 문서-카테고리 매핑 (요청 중복 제거했으므로 그대로 삽입)
         if (!categories.isEmpty()) {
             List<DocumentCategory> links = categories.stream()
                 .map(c -> DocumentCategory.builder()
@@ -102,14 +98,13 @@ public class DocumentServiceImpl implements DocumentService{
             documentCategoryRepository.saveAll(links);
         }
 
-        // 6) 응답
         return DocumentResponseDto.builder()
             .id(saved.getId())
             .studyId(studyId)
             .title(saved.getTitle())
             .description(saved.getDescription())
-            .fileKey(saved.getFileKey())       // URL이 아니라 key
-            .categoryIds(catIds)               // 요청 리스트(중복 제거)
+            .fileKey(saved.getFileKey())
+            .categoryIds(catIds)
             .createdAt(saved.getCreatedAt() != null ? saved.getCreatedAt() : java.time.LocalDateTime.now())
             .build();
     }
@@ -124,7 +119,7 @@ public class DocumentServiceImpl implements DocumentService{
             userId, doc.getStudyGroup().getId(), StudyMembership.Status.APPROVED);
 
         if (!hasAccess) throw new CustomException(ErrorCode.FORBIDDEN_DOCUMENT_ACCESS);
-        return doc.getFileKey(); // DB 컬럼 file_key
+        return doc.getFileKey();
     }
 
     @Override
@@ -133,12 +128,10 @@ public class DocumentServiceImpl implements DocumentService{
         Document doc = documentRepository.findById(documentId)
             .orElseThrow(() -> new CustomException(ErrorCode.DOCUMENT_NOT_FOUND));
 
-        // 권한 체크(예시: 승인 멤버)
         boolean allowed = studyMembershipRepository.existsByUserIdAndStudyGroup_IdAndStatus(
             userId, doc.getStudyGroup().getId(), StudyMembership.Status.APPROVED);
         if (!allowed) throw new CustomException(ErrorCode.FORBIDDEN_DOCUMENT_ACCESS);
 
-        // 제목/설명
         if (req.getTitle() != null && !req.getTitle().isBlank()) {
             doc.setTitle(req.getTitle().trim());
         }
@@ -146,8 +139,6 @@ public class DocumentServiceImpl implements DocumentService{
             doc.setDescription(req.getDescription().trim());
         }
 
-
-        // 카테고리 갱신(요청이 null이면 스킵, 빈 리스트면 모두 해제)
         if (req.getCategoryIdList() != null) {
 
             List<Category> categories = req.getCategoryIdList().isEmpty()
@@ -161,7 +152,6 @@ public class DocumentServiceImpl implements DocumentService{
                 .allMatch(c -> c.getStudyGroup().getId() == doc.getStudyGroup().getId());
             if (!allSameStudy) throw new CustomException(ErrorCode.INVALID_REQUEST);
 
-            // 기존 링크 삭제 후 신규 삽입
             documentCategoryRepository.deleteByDocument_Id(doc.getId());
             documentCategoryRepository.flush();
 
@@ -179,18 +169,15 @@ public class DocumentServiceImpl implements DocumentService{
     }
 
     @Override
-    @Transactional(readOnly = true) // 조회는 readOnly 최적화
+    @Transactional(readOnly = true)
     public List<DocumentListItemDto> getDocuments(int userId, int studyId) {
-        // 권한 체크 (예: 승인 멤버)
         boolean allowed = studyMembershipRepository.existsByUserIdAndStudyGroup_IdAndStatus(
             userId, studyId, StudyMembership.Status.APPROVED);
         if (!allowed) throw new CustomException(ErrorCode.FORBIDDEN_DOCUMENT_ACCESS);
 
-        // 문서 + 업로더 최소 필드만 조회
         List<DocumentRow> rows = documentRepository.findListByStudyId(studyId);
         if (rows.isEmpty()) return List.of();
 
-        // 카테고리 이름 일괄 조회 후 docId → names 매핑
         List<Integer> docIds = rows.stream().map(DocumentRow::getId).toList();
         Map<Integer, List<String>> catMap = new HashMap<>();
         for (Object[] r : documentCategoryRepository.findNamesByDocumentIds(docIds)) {
@@ -199,7 +186,6 @@ public class DocumentServiceImpl implements DocumentService{
             catMap.computeIfAbsent(docId, k -> new ArrayList<>()).add(name);
         }
 
-        // 응답 매핑
         return rows.stream()
             .map(r -> new DocumentListItemDto(
                 r.getId(),
@@ -208,8 +194,8 @@ public class DocumentServiceImpl implements DocumentService{
                 catMap.getOrDefault(r.getId(), List.of()),
                 r.getProfileImageUrl(),
                 r.getName(),
-                r.getUpdatedAt(),   // updateDate
-                r.getCreatedAt()    // uploadDate
+                r.getUpdatedAt(),
+                r.getCreatedAt()
             ))
             .toList();
     }
@@ -220,7 +206,6 @@ public class DocumentServiceImpl implements DocumentService{
         Document doc = documentRepository.findById(documentId)
             .orElseThrow(() -> new CustomException(ErrorCode.DOCUMENT_NOT_FOUND));
 
-        // 권한: 업로더 본인 또는 스터디 관리자(예시)
         boolean isUploader = doc.getUploader().getId() == userId;
         boolean isAdmin = studyMembershipRepository.existsByUserIdAndStudyGroup_IdAndRole(
             userId, doc.getStudyGroup().getId(), StudyMembership.Role.ADMIN
@@ -230,6 +215,7 @@ public class DocumentServiceImpl implements DocumentService{
         }
 
         documentCategoryRepository.deleteByDocument_Id(doc.getId());
+        aiSummaryDocumentRepository.deleteByDocument_Id(doc.getId());
 
         storageService.deleteDocumentObject(doc.getFileKey());
 

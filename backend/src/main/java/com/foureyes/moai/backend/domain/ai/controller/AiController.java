@@ -1,7 +1,5 @@
 package com.foureyes.moai.backend.domain.ai.controller;
 
-import com.foureyes.moai.backend.auth.jwt.JwtTokenProvider;
-import com.foureyes.moai.backend.commons.util.StorageService;
 import com.foureyes.moai.backend.domain.ai.dto.request.CreateAiSummaryRequest;
 import com.foureyes.moai.backend.domain.ai.dto.request.EditAiSummaryRequest;
 import com.foureyes.moai.backend.domain.ai.dto.response.AiSummaryResponseDto;
@@ -9,14 +7,12 @@ import com.foureyes.moai.backend.domain.ai.dto.response.CreateAiSummaryResponse;
 import com.foureyes.moai.backend.domain.ai.dto.response.DashboardSummariesResponse;
 import com.foureyes.moai.backend.domain.ai.dto.response.SidebarSummariesResponse;
 import com.foureyes.moai.backend.domain.ai.service.AiService;
-import com.foureyes.moai.backend.domain.document.service.DocumentService;
+import com.foureyes.moai.backend.domain.user.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -25,45 +21,39 @@ import org.springframework.web.bind.annotation.*;
 public class AiController {
 
     private final AiService aiService;
-    private final JwtTokenProvider jwtTokenProvider;
-    private int extractUserIdFromToken(String bearerToken) {
-        String token = bearerToken.replaceFirst("^Bearer ", "").trim();
-        return jwtTokenProvider.getUserId(token);
-    }
 
     @Operation(
         summary = "AI 요약본 생성",
         description = """
             여러 문서 ID를 받아 요약본 레코드를 생성하고 문서와 연결합니다.
-            모델/프롬프트 값은 그대로 저장되며, 실제 모델 호출은 추후 연결합니다.
             """
     )
     @PostMapping("/create")
     public ResponseEntity<CreateAiSummaryResponse> create(
-        @Parameter(hidden = true) @RequestHeader("Authorization") String bearerToken,
+        @AuthenticationPrincipal CustomUserDetails user,
         @RequestBody CreateAiSummaryRequest req
     ) {
-        int ownerId = extractUserIdFromToken(bearerToken);
-        var resp = aiService.createSummary(ownerId, req);
+        if (user == null) return ResponseEntity.status(401).build();
+        var resp = aiService.createSummary(user.getId(), req);
         return ResponseEntity.status(201).body(resp);
     }
 
     @Operation(summary = "내 요약본 목록(대시보드)")
     @GetMapping("/dashboard")
     public ResponseEntity<DashboardSummariesResponse> dashboard(
-        @Parameter(hidden = true) @RequestHeader("Authorization") String bearerToken
+        @AuthenticationPrincipal CustomUserDetails user
     ) {
-        int ownerId = extractUserIdFromToken(bearerToken);
-        return ResponseEntity.ok(aiService.getDashboardList(ownerId));
+        if (user == null) return ResponseEntity.status(401).build();
+        return ResponseEntity.ok(aiService.getDashboardList(user.getId()));
     }
 
     @Operation(summary = "내 요약본 목록(사이드바)")
     @GetMapping("/sidebar")
     public ResponseEntity<SidebarSummariesResponse> sidebar(
-        @Parameter(hidden = true) @RequestHeader("Authorization") String bearerToken
+        @AuthenticationPrincipal CustomUserDetails user
     ) {
-        int ownerId = extractUserIdFromToken(bearerToken);
-        return ResponseEntity.ok(aiService.getSidebarList(ownerId));
+        if (user == null) return ResponseEntity.status(401).build();
+        return ResponseEntity.ok(aiService.getSidebarList(user.getId()));
     }
 
     @Operation(
@@ -72,11 +62,11 @@ public class AiController {
     )
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteSummary(
-        @Parameter(hidden = true) @RequestHeader("Authorization") String bearerToken,
-        @Parameter(description = "요약본 ID", example = "123") @PathVariable int id
+        @AuthenticationPrincipal CustomUserDetails user,
+        @PathVariable int id
     ) {
-        int ownerId = extractUserIdFromToken(bearerToken);
-        aiService.deleteSummary(ownerId, id);
+        if (user == null) return ResponseEntity.status(401).build();
+        aiService.deleteSummary(user.getId(), id);
         return ResponseEntity.ok().build();
     }
 
@@ -86,13 +76,12 @@ public class AiController {
     )
     @PatchMapping("/edit/{id}")
     public ResponseEntity<Void> editAiSummary(
-        @Parameter(hidden = true)
-        @RequestHeader("Authorization") String bearerToken,
+        @AuthenticationPrincipal CustomUserDetails user,
         @PathVariable int id,
         @Valid @RequestBody EditAiSummaryRequest request
     ) {
-        int userId = extractUserIdFromToken(bearerToken);
-        aiService.editSummary(userId, id, request);
+        if (user == null) return ResponseEntity.status(401).build();
+        aiService.editSummary(user.getId(), id, request);
         return ResponseEntity.ok().build();
     }
 
@@ -102,10 +91,10 @@ public class AiController {
     )
     @GetMapping("/detail/{id}")
     public ResponseEntity<AiSummaryResponseDto> getDetail(
-        @Parameter(hidden = true) @RequestHeader("Authorization") String bearerToken,
+        @AuthenticationPrincipal CustomUserDetails user,
         @PathVariable("id") int id
     ) {
-        int userId = extractUserIdFromToken(bearerToken);
-        return ResponseEntity.ok(aiService.getSummaryDetail(userId, id));
+        if (user == null) return ResponseEntity.status(401).build();
+        return ResponseEntity.ok(aiService.getSummaryDetail(user.getId(), id));
     }
 }

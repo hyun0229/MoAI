@@ -117,5 +117,12 @@ export const createAISummary = async (summaryData: {
     timestamp: new Date().toISOString()
   })
 
+  
+
+  return response.data
+}
+
+export const getAvailableModels = async (): Promise<string[]> => {
+  const response = await api.get('/ai/models')
   return response.data
 }

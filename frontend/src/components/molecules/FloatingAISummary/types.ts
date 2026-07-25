@@ -4,6 +4,7 @@ export interface FloatingAISummaryProps {
   title: string
   description: string
   selectedModel: string
+  availableModels: string[]
   prompt: string
   isSelectAll: boolean
   isVisible: boolean
@@ -22,5 +23,5 @@ export interface FloatingAISummaryProps {
     promptType: string
   }) => Promise<void>
   onClose: () => void
-  onSuccess?: () => void // AI 요약본 생성 성공 시 호출되는 콜백
+  onSuccess?: () => void
 }

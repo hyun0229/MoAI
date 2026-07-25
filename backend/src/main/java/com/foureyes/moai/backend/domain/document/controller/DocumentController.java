@@ -1,7 +1,5 @@
 package com.foureyes.moai.backend.domain.document.controller;
 
-
-import com.foureyes.moai.backend.auth.jwt.JwtTokenProvider;
 import com.foureyes.moai.backend.commons.util.StorageService;
 import com.foureyes.moai.backend.domain.document.dto.CategoryItemDto;
 import com.foureyes.moai.backend.domain.document.dto.request.CreateCategoryRequest;
@@ -13,16 +11,15 @@ import com.foureyes.moai.backend.domain.document.dto.response.DocumentResponseDt
 import com.foureyes.moai.backend.domain.document.dto.response.PresignedUrlResponse;
 import com.foureyes.moai.backend.domain.document.service.CategoryService;
 import com.foureyes.moai.backend.domain.document.service.DocumentService;
+import com.foureyes.moai.backend.domain.user.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -34,15 +31,9 @@ import java.util.List;
 @RequestMapping("/ref")
 @RequiredArgsConstructor
 public class DocumentController {
-    private final JwtTokenProvider jwtTokenProvider;
     private final DocumentService documentService;
     private final StorageService storageService;
     private final CategoryService categoryService;
-
-    private int extractUserIdFromToken(String bearerToken) {
-        String token = bearerToken.replaceFirst("^Bearer ", "").trim();
-        return jwtTokenProvider.getUserId(token);
-    }
 
     @Operation(
         summary = "공부 자료 업로드",
@@ -51,12 +42,11 @@ public class DocumentController {
     )
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DocumentResponseDto> upload(
-        @Parameter(hidden = true)
-        @RequestHeader("Authorization") String bearerToken,
+        @AuthenticationPrincipal CustomUserDetails user,
         @ModelAttribute @Valid CreateDocumentRequest request
     ) throws IOException {
-        int userId = extractUserIdFromToken(bearerToken);
-        DocumentResponseDto dto = documentService.uploadDocument(userId, request);
+        if (user == null) return ResponseEntity.status(401).build();
+        DocumentResponseDto dto = documentService.uploadDocument(user.getId(), request);
         return ResponseEntity.status(201).body(dto);
     }
 
@@ -67,16 +57,15 @@ public class DocumentController {
     )
     @GetMapping("/download-url/{id}")
     public ResponseEntity<PresignedUrlResponse> getDownloadUrl(
-        @Parameter(hidden = true)
-        @RequestHeader("Authorization") String bearerToken,
+        @AuthenticationPrincipal CustomUserDetails user,
         @PathVariable int id
     ) {
-        int userId = extractUserIdFromToken(bearerToken);
-        String key = documentService.getDocumentKeyIfAllowed(userId, id);
+        if (user == null) return ResponseEntity.status(401).build();
+        String key = documentService.getDocumentKeyIfAllowed(user.getId(), id);
         String url = storageService.presignDocumentDownloadUrl(key, Duration.ofMinutes(10));
-
         return ResponseEntity.ok(new PresignedUrlResponse(url));
     }
+
     @Operation(
         summary = "단일 문서 View URL 발급",
         description = "문서 접근 권한 확인 후 Pre-signed URL을 발급합니다.",
@@ -84,14 +73,12 @@ public class DocumentController {
     )
     @GetMapping("/view-url/{id}")
     public ResponseEntity<PresignedUrlResponse> getViewUrl(
-        @Parameter(hidden = true)
-        @RequestHeader("Authorization") String bearerToken,
+        @AuthenticationPrincipal CustomUserDetails user,
         @PathVariable int id
     ) {
-        int userId = extractUserIdFromToken(bearerToken);
-        String key = documentService.getDocumentKeyIfAllowed(userId, id);
+        if (user == null) return ResponseEntity.status(401).build();
+        String key = documentService.getDocumentKeyIfAllowed(user.getId(), id);
         String url = storageService.presignDocumentViewUrl(key, Duration.ofMinutes(40));
-
         return ResponseEntity.ok(new PresignedUrlResponse(url));
     }
 
@@ -102,13 +89,12 @@ public class DocumentController {
     )
     @PatchMapping("/edit/{id}")
     public ResponseEntity<Void> editDocument(
-        @Parameter(hidden = true)
-        @RequestHeader("Authorization") String bearerToken,
+        @AuthenticationPrincipal CustomUserDetails user,
         @PathVariable int id,
         @RequestBody EditDocumentRequest request
     ) {
-        int userId = extractUserIdFromToken(bearerToken);
-        documentService.updateDocument(userId, id, request);
+        if (user == null) return ResponseEntity.status(401).build();
+        documentService.updateDocument(user.getId(), id, request);
         return ResponseEntity.noContent().build();
     }
 
@@ -119,11 +105,11 @@ public class DocumentController {
     )
     @GetMapping("/list")
     public ResponseEntity<List<DocumentListItemDto>> listDocuments(
-        @Parameter(hidden = true) @RequestHeader("Authorization") String bearer,
+        @AuthenticationPrincipal CustomUserDetails user,
         @RequestParam int studyId
     ) {
-        int userId = extractUserIdFromToken(bearer);
-        List<DocumentListItemDto> result = documentService.getDocuments(userId, studyId);
+        if (user == null) return ResponseEntity.status(401).build();
+        List<DocumentListItemDto> result = documentService.getDocuments(user.getId(), studyId);
         return ResponseEntity.ok(result);
     }
 
@@ -134,11 +120,11 @@ public class DocumentController {
     )
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteDocument(
-        @Parameter(hidden = true) @RequestHeader("Authorization") String bearerToken,
-        @Parameter(description = "파일 ID", example = "123") @PathVariable int id
+        @AuthenticationPrincipal CustomUserDetails user,
+        @PathVariable int id
     ) {
-        int userId = extractUserIdFromToken(bearerToken);
-        documentService.deleteDocument(userId, id);
+        if (user == null) return ResponseEntity.status(401).build();
+        documentService.deleteDocument(user.getId(), id);
         return ResponseEntity.noContent().build();
     }
 
@@ -149,14 +135,13 @@ public class DocumentController {
     )
     @PostMapping("/categories/create")
     public ResponseEntity<Void> create(
-        @Parameter(hidden = true) @RequestHeader("Authorization") String bearerToken,
+        @AuthenticationPrincipal CustomUserDetails user,
         @RequestBody CreateCategoryRequest req
     ) {
-        int userId = extractUserIdFromToken(bearerToken);
-        categoryService.createCategory(userId, req);
+        if (user == null) return ResponseEntity.status(401).build();
+        categoryService.createCategory(user.getId(), req);
         return ResponseEntity.status(201).build();
     }
-
 
     @Operation(
         summary = "커스텀 카테고리 수정",
@@ -165,14 +150,15 @@ public class DocumentController {
     )
     @PatchMapping("/categories/edit/{id}")
     public ResponseEntity<Void> edit(
-        @Parameter(hidden = true) @RequestHeader("Authorization") String bearerToken,
+        @AuthenticationPrincipal CustomUserDetails user,
         @PathVariable int id,
         @RequestBody EditCategoryRequest req
     ) {
-        int userId = extractUserIdFromToken(bearerToken);
-        categoryService.editCategory(userId, id, req);
+        if (user == null) return ResponseEntity.status(401).build();
+        categoryService.editCategory(user.getId(), id, req);
         return ResponseEntity.ok().build();
     }
+
     @Operation(
         summary = "커스텀 카테고리 삭제",
         description = "스터디 관리자만 카테고리를 삭제할 수 있습니다.",
@@ -180,11 +166,11 @@ public class DocumentController {
     )
     @DeleteMapping("/categories/delete/{id}")
     public ResponseEntity<Void> delete(
-        @Parameter(hidden = true) @RequestHeader("Authorization") String bearerToken,
+        @AuthenticationPrincipal CustomUserDetails user,
         @PathVariable int id
     ) {
-        int userId = extractUserIdFromToken(bearerToken);
-        categoryService.deleteCategory(userId, id);
+        if (user == null) return ResponseEntity.status(401).build();
+        categoryService.deleteCategory(user.getId(), id);
         return ResponseEntity.ok().build();
     }
 
@@ -195,12 +181,10 @@ public class DocumentController {
     )
     @GetMapping("/categories")
     public ResponseEntity<List<CategoryItemDto>> list(
-        @Parameter(hidden = true) @RequestHeader("Authorization") String bearerToken,
+        @AuthenticationPrincipal CustomUserDetails user,
         @RequestParam int studyId
     ) {
-        int userId = extractUserIdFromToken(bearerToken);
-        return ResponseEntity.ok(categoryService.getCategories(userId, studyId));
+        if (user == null) return ResponseEntity.status(401).build();
+        return ResponseEntity.ok(categoryService.getCategories(user.getId(), studyId));
     }
-
 }
-
