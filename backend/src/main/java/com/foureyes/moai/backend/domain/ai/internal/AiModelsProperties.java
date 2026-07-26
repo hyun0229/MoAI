@@ -1,7 +1,7 @@
 package com.foureyes.moai.backend.domain.ai.internal;
 
 import lombok.Getter;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -9,8 +9,8 @@ import java.util.List;
 
 @Component
 @ConfigurationProperties(prefix = "ai")
+@RequiredArgsConstructor
 @Getter
-@Setter
 public class AiModelsProperties {
-    private List<ModelEntry> models;
+    private final List<ModelEntry> models;
 }

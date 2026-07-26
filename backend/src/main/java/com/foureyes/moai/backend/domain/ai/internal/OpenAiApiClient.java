@@ -59,7 +59,7 @@ public class OpenAiApiClient implements AiApiClient {
             .map(this::extractTextFromOpenAiResponse);
     }
 
-    /** OpenAI 응답 텍스트 추출 → JSON Array 문자열 가정 */
+    /** OpenAI 응답 텍스트 추출 → JSON Array 문자열 */
     private String extractTextFromOpenAiResponse(JsonNode response) {
         try {
             String raw = response.get("choices").get(0).get("message").get("content").asText();
