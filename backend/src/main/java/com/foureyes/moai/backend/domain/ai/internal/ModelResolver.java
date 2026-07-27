@@ -11,6 +11,11 @@ public class ModelResolver {
 
     private final AiModelsProperties aiModelsProperties;
 
+    /**
+     * 입력: String requested
+     * 출력: ModelEntry
+     * 기능: 요청된 모델ID에 해당하는 설정(ModelEntry)을 조회합니다.
+     */
     public ModelEntry resolveOption(String requested) {
         if (requested == null || requested.isBlank()) {
             throw new CustomException(ErrorCode.INVALID_REQUEST);

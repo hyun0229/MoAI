@@ -37,6 +37,11 @@ public class StudySessionServiceImpl implements StudySessionService{
     private final LiveKitTokenGenerator tokenGenerator;
     private final LiveKitRoomClient liveKitRoomClient;
 
+    /**
+     * 입력: String studyHashId, int meUserId
+     * 출력: SessionResponseDto
+     * 기능: 세션을 열거나(없으면 생성) 이미 열려 있으면 그대로 반환합니다.
+     */
     @Override
     @Transactional
     public SessionResponseDto openOrGetByHashId(String studyHashId, int meUserId) {
@@ -105,6 +110,11 @@ public class StudySessionServiceImpl implements StudySessionService{
         }
     }
 
+    /**
+     * 입력: int userId
+     * 출력: String(표시명)
+     * 기능: DB에 저장된 사용자 이름을 정제하여 참가자 표시명을 생성합니다.
+     */
     private String resolveDisplayName(int userId) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND)); // 404 매핑
@@ -161,6 +171,11 @@ public class StudySessionServiceImpl implements StudySessionService{
             .build();
     }
 
+    /**
+     * 입력: String studyHashId, int meUserId
+     * 출력: CloseSessionResponseDto
+     * 기능: 세션을 종료합니다.
+     */
     @Override
     @Transactional
     public CloseSessionResponseDto closeByHashId(String studyHashId, int meUserId) {
@@ -207,6 +222,11 @@ public class StudySessionServiceImpl implements StudySessionService{
             .build();
     }
 
+    /**
+     * 입력: String studyHashId, int meUserId
+     * 출력: ParticipantsResponseDto
+     * 기능: 현재 세션 참여자 목록을 LiveKit에서 조회해 DB 정보와 매칭합니다.
+     */
     @Override
     @Transactional(readOnly = true)
     public ParticipantsResponseDto listParticipantsByHashId(String studyHashId, int meUserId) {

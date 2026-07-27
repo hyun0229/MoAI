@@ -457,6 +457,11 @@ public class StudyServiceImpl implements StudyService {
         return pendingRequests;
     }
 
+    /**
+     * 입력: int userId
+     * 출력: List<JoinStudyListResponseDto>
+     * 기능: 사용자가 승인되어 참여 중인 스터디 목록을 조회합니다.
+     */
     @Override
     @Transactional
     public List<JoinStudyListResponseDto> getJoinedStudies(int userId) {
@@ -475,6 +480,11 @@ public class StudyServiceImpl implements StudyService {
             .collect(Collectors.toList());
     }
 
+    /**
+     * 입력: int userId, String hashId
+     * 출력: StudyDetailResponseDto
+     * 기능: hashId로 스터디 상세 정보를 조회합니다. 멤버십 상태에 따라 반환 정보 범위가 다릅니다.
+     */
     @Override
     @Transactional(readOnly = true)
     public StudyDetailResponseDto getStudyDetailByHashId(int userId, String hashId) {
@@ -528,6 +538,11 @@ public class StudyServiceImpl implements StudyService {
             .build();
     }
 
+    /**
+     * 입력: int userId, int studyId
+     * 출력: StudyNoticeResponseDto
+     * 기능: 승인된 멤버만 접근 가능한 스터디 공지사항을 조회합니다.
+     */
     @Override
     @Transactional(readOnly = true)
     public StudyNoticeResponseDto getStudyNotice(int userId, int studyId) {
@@ -544,6 +559,11 @@ public class StudyServiceImpl implements StudyService {
             .build();
     }
 
+    /**
+     * 입력: int userId, int studyId, String notice
+     * 출력: void
+     * 기능: 관리자가 스터디 공지사항을 수정합니다.
+     */
     @Override
     @Transactional
     public void updateStudyNotice(int userId, int studyId, String notice) {
@@ -554,6 +574,11 @@ public class StudyServiceImpl implements StudyService {
         studyGroupRepository.save(group);
     }
 
+    /**
+     * 입력: int userId, int studyId, UpdateStudyRequestDto request
+     * 출력: void
+     * 기능: 관리자가 스터디 이름/설명/이미지/최대 인원을 수정합니다.
+     */
     @Override
     @Transactional
     public void updateStudyGroup(int userId, int studyId, UpdateStudyRequestDto request) {

@@ -17,6 +17,11 @@ public class LiveKitTokenGenerator {
     @Value("${livekit.api.secret}") private String apiSecret;
     @Value("${livekit.ws-url}")     private String wsUrl;
 
+    /**
+     * 입력: String roomName, int userId, String displayName
+     * 출력: String(JWT 토큰)
+     * 기능: LiveKit 방 참가용 Access Token을 생성합니다.
+     */
     public String createJoinToken(String roomName, int userId, String displayName) {
         String identity = Integer.toString(userId);
         String name = (displayName != null && !displayName.isBlank()) ? displayName : identity;

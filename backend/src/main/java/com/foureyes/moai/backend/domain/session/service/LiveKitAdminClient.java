@@ -13,6 +13,11 @@ public class LiveKitAdminClient {
     @Value("${livekit.api.key}") private String apiKey;
     @Value("${livekit.api.secret}") private String apiSecret;
 
+    /**
+     * 입력: String roomName
+     * 출력: void
+     * 기능: LiveKit 방이 존재하도록 보장합니다.
+     */
     public void ensureRoom(String roomName) {
 
     }

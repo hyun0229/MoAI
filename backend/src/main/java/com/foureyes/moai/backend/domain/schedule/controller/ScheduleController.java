@@ -32,6 +32,11 @@ public class ScheduleController {
     private static final Logger log = LoggerFactory.getLogger(ScheduleController.class);
     private final ScheduleService scheduleService;
 
+    /**
+     * 입력: CustomUserDetails user, CreateScheduleRequestDto request
+     * 출력: CreateScheduleResponseDto
+     * 기능: 새로운 일정을 생성합니다.
+     */
     @PostMapping("/register")
     @Operation(
         summary = "일정 생성",
@@ -48,6 +53,11 @@ public class ScheduleController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * 입력: CustomUserDetails user, int scheduleId, EditScheduleRequestDto request
+     * 출력: EditScheduleResponseDto
+     * 기능: 기존 일정을 부분 수정합니다.
+     */
     @PatchMapping("/edit/{id}")
     @Operation(
         summary = "일정 수정",
@@ -67,6 +77,11 @@ public class ScheduleController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * 입력: CustomUserDetails user, int scheduleId
+     * 출력: GetScheduleResponseDto
+     * 기능: 일정 ID로 단일 일정을 조회합니다. 스터디 멤버만 접근 가능합니다.
+     */
     @GetMapping("/{id}")
     @Operation(
         summary = "일정 단건 조회",
@@ -84,6 +99,11 @@ public class ScheduleController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * 입력: CustomUserDetails user, int studyId, LocalDateTime from, LocalDateTime to
+     * 출력: List<GetScheduleListDto>
+     * 기능: 스터디 페이지에서 기간(from~to)에 겹치는 일정을 조회합니다.
+     */
     @GetMapping("/{studyId}/list")
     @Operation(
         summary = "일정 목록 조회(스터디 스크린)",
@@ -103,6 +123,11 @@ public class ScheduleController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * 입력: CustomUserDetails user, LocalDateTime from, LocalDateTime to
+     * 출력: List<MyScheduleListDto>
+     * 기능: 해당 사용자가 가입 승인된 모든 스터디의 일정들을 from~to 기간으로 조회합니다.
+     */
     @GetMapping("/list")
     @Operation(
         summary = "일정 목록 조회(마이페이지)",
@@ -119,6 +144,11 @@ public class ScheduleController {
         return ResponseEntity.ok(scheduleService.listMySchedules(user.getId(), from, to));
     }
 
+    /**
+     * 입력: CustomUserDetails user, int scheduleId
+     * 출력: void
+     * 기능: 일정을 삭제합니다. 스터디 관리자만 가능합니다.
+     */
     @DeleteMapping("/delete/{id}")
     @Operation(
         summary = "일정 삭제",

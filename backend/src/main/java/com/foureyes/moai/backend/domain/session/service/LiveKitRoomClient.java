@@ -38,6 +38,11 @@ public class LiveKitRoomClient {
     // ↑ 실제 구현은 SDK 버전에 맞춰 RoomServiceClient 초기화. 예시는 생략(프로젝트에 맞춰 주입/생성).
     private RoomServiceClient client;
 
+    /**
+     * 입력: 없음
+     * 출력: void
+     * 기능: ws(s) URL을 http(s)로 변환하여 RoomServiceClient를 초기화합니다.
+     */
     @PostConstruct
     void init() {
         // ws(s) → http(s)로 변환 (RoomServiceClient는 HTTP/HTTPS 엔드포인트 필요)

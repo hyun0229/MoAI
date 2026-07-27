@@ -6,6 +6,11 @@ import { refService } from '../../../services/refService'
 // public 폴더의 워커 파일 사용
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
+const PDF_OPTIONS = {
+  cMapUrl: `//unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
+  cMapPacked: true,
+}
+
 
 interface PDFPreviewModalProps {
   isOpen: boolean
@@ -128,6 +133,7 @@ const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
             <div className="flex flex-col items-center">
               <Document
                 file={pdfUrl}
+                options={PDF_OPTIONS}
                 onLoadSuccess={onDocumentLoadSuccess}
                 onLoadError={onDocumentLoadError}
               >

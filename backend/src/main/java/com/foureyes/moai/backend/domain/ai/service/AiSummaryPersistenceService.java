@@ -29,6 +29,11 @@ public class AiSummaryPersistenceService {
     private final AiSummaryDocumentRepository aiSummaryDocumentRepository;
     private final ObjectMapper objectMapper;
 
+    /**
+     * 입력: User owner, CreateAiSummaryRequest req, String summaryJson, List<Document> docs
+     * 출력: AiSummary
+     * 기능: AI 요약 결과를 저장하고 문서들과 연결합니다.
+     */
     @Transactional
     public AiSummary save(User owner, CreateAiSummaryRequest req, String summaryJson, List<Document> docs) throws Exception {
         AiSummary summary = AiSummary.builder()

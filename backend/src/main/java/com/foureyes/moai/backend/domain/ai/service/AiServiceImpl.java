@@ -54,6 +54,10 @@ public class AiServiceImpl implements AiService {
     private final AiSummaryPersistenceService aiSummaryPersistenceService;
 
     /**
+     * 입력: int ownerId, CreateAiSummaryRequest req
+     * 출력: CreateAiSummaryResponse
+     * 기능: 문서들의 텍스트를 추출해 AI에게 요약을 요청하고, 결과를 저장합니다.
+     *
      * 클래스 레벨 @Transactional을 이 메서드만 무효화한다.
      * PDF 추출 + AI 호출(수 초 이상 걸릴 수 있음) 동안 DB 커넥션을 붙잡고 있지 않기 위함.
      * 실제 DB 저장은 aiSummaryPersistenceService.save()에서 짧게 트랜잭션으로 묶는다.
@@ -90,8 +94,8 @@ public class AiServiceImpl implements AiService {
 
             // --- 여기까지 DB 트랜잭션이 전혀 열려있지 않은 상태로 진행됨 ---
             String summaryJson = aiClientRouter
-                    .generateJsonArray(req.getModelType(), prompt)
-                    .block();
+                .generateJsonArray(req.getModelType(), prompt)
+                .block();
 
             List<SummaryDto> parsed;
             try {
@@ -125,6 +129,11 @@ public class AiServiceImpl implements AiService {
         }
     }
 
+    /**
+     * 입력: int ownerId
+     * 출력: DashboardSummariesResponse
+     * 기능: 소유자의 요약본 목록(대시보드)을 조회합니다.
+     */
     @Override
     @Transactional(readOnly = true)
     public DashboardSummariesResponse getDashboardList(int ownerId) {
@@ -143,6 +152,11 @@ public class AiServiceImpl implements AiService {
             .build();
     }
 
+    /**
+     * 입력: int ownerId
+     * 출력: SidebarSummariesResponse
+     * 기능: 소유자의 요약본 목록(사이드바)을 스터디별로 그룹핑하여 조회합니다.
+     */
     @Override
     @Transactional(readOnly = true)
     public SidebarSummariesResponse getSidebarList(int ownerId) {
@@ -182,6 +196,11 @@ public class AiServiceImpl implements AiService {
             .build();
     }
 
+    /**
+     * 입력: int ownerId, int summaryId
+     * 출력: void
+     * 기능: 요약본을 삭제합니다. 소유자만 삭제할 수 있습니다.
+     */
     @Override
     public void deleteSummary(int ownerId, int summaryId) {
         var summary = aiSummaryRepository.findById(summaryId)
@@ -196,6 +215,11 @@ public class AiServiceImpl implements AiService {
         aiSummaryRepository.delete(summary);
     }
 
+    /**
+     * 입력: int userId, int summaryId, EditAiSummaryRequest request
+     * 출력: void
+     * 기능: 요약본의 제목과 설명을 수정합니다.
+     */
     @Override
     @Transactional
     public void editSummary(int userId, int summaryId, EditAiSummaryRequest request) {
@@ -212,6 +236,11 @@ public class AiServiceImpl implements AiService {
         aiSummaryRepository.save(summary);
     }
 
+    /**
+     * 입력: int userId, int summaryId
+     * 출력: AiSummaryResponseDto
+     * 기능: 요약본 JSON과 연결된 문서들의 프리사인드 뷰 URL을 조회합니다.
+     */
     @Override
     public AiSummaryResponseDto getSummaryDetail(int userId, int summaryId) {
         AiSummary summary = aiSummaryRepository.findById(summaryId)

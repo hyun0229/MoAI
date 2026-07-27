@@ -40,6 +40,11 @@ public class DocumentController {
         description = "PDF를 비공개 버킷에 업로드하고 key를 저장합니다.",
         security = @SecurityRequirement(name = "bearerAuth")
     )
+    /**
+     * 입력: CustomUserDetails user, CreateDocumentRequest request
+     * 출력: DocumentResponseDto
+     * 기능: PDF를 비공개 버킷에 업로드하고 문서 정보를 저장합니다.
+     */
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DocumentResponseDto> upload(
         @AuthenticationPrincipal CustomUserDetails user,
@@ -55,6 +60,11 @@ public class DocumentController {
         description = "문서 접근 권한 확인 후 Pre-signed URL을 발급합니다.",
         security = @SecurityRequirement(name = "bearerAuth")
     )
+    /**
+     * 입력: CustomUserDetails user, int id
+     * 출력: PresignedUrlResponse
+     * 기능: 문서 접근 권한 확인 후 다운로드용 Pre-signed URL을 발급합니다.
+     */
     @GetMapping("/download-url/{id}")
     public ResponseEntity<PresignedUrlResponse> getDownloadUrl(
         @AuthenticationPrincipal CustomUserDetails user,
@@ -71,6 +81,11 @@ public class DocumentController {
         description = "문서 접근 권한 확인 후 Pre-signed URL을 발급합니다.",
         security = @SecurityRequirement(name = "bearerAuth")
     )
+    /**
+     * 입력: CustomUserDetails user, int id
+     * 출력: PresignedUrlResponse
+     * 기능: 문서 접근 권한 확인 후 조회용 Pre-signed URL을 발급합니다.
+     */
     @GetMapping("/view-url/{id}")
     public ResponseEntity<PresignedUrlResponse> getViewUrl(
         @AuthenticationPrincipal CustomUserDetails user,
@@ -87,6 +102,11 @@ public class DocumentController {
         description = "문서 접근 권한 확인 후 제목/설명/카테고리를 수정합니다.",
         security = @SecurityRequirement(name = "bearerAuth")
     )
+    /**
+     * 입력: CustomUserDetails user, int id, EditDocumentRequest request
+     * 출력: void
+     * 기능: 문서 접근 권한 확인 후 제목/설명/카테고리를 수정합니다.
+     */
     @PatchMapping("/edit/{id}")
     public ResponseEntity<Void> editDocument(
         @AuthenticationPrincipal CustomUserDetails user,
@@ -103,6 +123,11 @@ public class DocumentController {
         description = "스터디별 문서 목록을 조회합니다.",
         security = @SecurityRequirement(name = "bearerAuth")
     )
+    /**
+     * 입력: CustomUserDetails user, int studyId
+     * 출력: List<DocumentListItemDto>
+     * 기능: 스터디별 문서 목록을 조회합니다.
+     */
     @GetMapping("/list")
     public ResponseEntity<List<DocumentListItemDto>> listDocuments(
         @AuthenticationPrincipal CustomUserDetails user,
@@ -118,6 +143,11 @@ public class DocumentController {
         description = "파일 ID에 해당하는 공부 자료를 삭제합니다.",
         security = @SecurityRequirement(name = "bearerAuth")
     )
+    /**
+     * 입력: CustomUserDetails user, int id
+     * 출력: void
+     * 기능: 파일 ID에 해당하는 공부 자료를 삭제합니다.
+     */
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteDocument(
         @AuthenticationPrincipal CustomUserDetails user,
@@ -133,6 +163,11 @@ public class DocumentController {
         description = "스터디 관리자만 커스텀 카테고리를 생성할 수 있습니다.",
         security = @SecurityRequirement(name = "bearerAuth")
     )
+    /**
+     * 입력: CustomUserDetails user, CreateCategoryRequest req
+     * 출력: void
+     * 기능: 스터디 관리자가 커스텀 카테고리를 생성합니다.
+     */
     @PostMapping("/categories/create")
     public ResponseEntity<Void> create(
         @AuthenticationPrincipal CustomUserDetails user,
@@ -148,6 +183,11 @@ public class DocumentController {
         description = "스터디 관리자만 카테고리 정보를 수정할 수 있습니다.",
         security = @SecurityRequirement(name = "bearerAuth")
     )
+    /**
+     * 입력: CustomUserDetails user, int id, EditCategoryRequest req
+     * 출력: void
+     * 기능: 스터디 관리자가 카테고리 정보를 수정합니다.
+     */
     @PatchMapping("/categories/edit/{id}")
     public ResponseEntity<Void> edit(
         @AuthenticationPrincipal CustomUserDetails user,
@@ -164,6 +204,11 @@ public class DocumentController {
         description = "스터디 관리자만 카테고리를 삭제할 수 있습니다.",
         security = @SecurityRequirement(name = "bearerAuth")
     )
+    /**
+     * 입력: CustomUserDetails user, int id
+     * 출력: void
+     * 기능: 스터디 관리자가 커스텀 카테고리를 삭제합니다.
+     */
     @DeleteMapping("/categories/delete/{id}")
     public ResponseEntity<Void> delete(
         @AuthenticationPrincipal CustomUserDetails user,
@@ -179,6 +224,11 @@ public class DocumentController {
         description = "해당 스터디의 커스텀 카테고리 목록을 조회합니다.",
         security = @SecurityRequirement(name = "bearerAuth")
     )
+    /**
+     * 입력: CustomUserDetails user, int studyId
+     * 출력: List<CategoryItemDto>
+     * 기능: 해당 스터디의 커스텀 카테고리 목록을 조회합니다.
+     */
     @GetMapping("/categories")
     public ResponseEntity<List<CategoryItemDto>> list(
         @AuthenticationPrincipal CustomUserDetails user,

@@ -47,6 +47,11 @@ public class DocumentServiceImpl implements DocumentService{
     private final StudyMembershipRepository studyMembershipRepository;
     private final AiSummaryDocumentRepository aiSummaryDocumentRepository;
 
+    /**
+     * 입력: int uploaderId, CreateDocumentRequest req
+     * 출력: DocumentResponseDto
+     * 기능: PDF를 비공개 버킷에 업로드하고 문서 정보를 저장합니다.
+     */
     @Override
     @Transactional
     public DocumentResponseDto uploadDocument(int uploaderId, CreateDocumentRequest req) throws IOException {
@@ -109,6 +114,11 @@ public class DocumentServiceImpl implements DocumentService{
             .build();
     }
 
+    /**
+     * 입력: int userId, int documentId
+     * 출력: String(파일 키)
+     * 기능: 문서 접근 권한을 확인한 후 파일 키를 반환합니다.
+     */
     @Override
     @Transactional(readOnly = true)
     public String getDocumentKeyIfAllowed(int userId, int documentId) {
@@ -122,6 +132,11 @@ public class DocumentServiceImpl implements DocumentService{
         return doc.getFileKey();
     }
 
+    /**
+     * 입력: int userId, int documentId, EditDocumentRequest req
+     * 출력: void
+     * 기능: 문서 접근 권한 확인 후 제목/설명/카테고리를 수정합니다.
+     */
     @Override
     @Transactional
     public void updateDocument(int userId, int documentId, EditDocumentRequest req) {
@@ -168,6 +183,11 @@ public class DocumentServiceImpl implements DocumentService{
         }
     }
 
+    /**
+     * 입력: int userId, int studyId
+     * 출력: List<DocumentListItemDto>
+     * 기능: 스터디별 문서 목록을 조회합니다.
+     */
     @Override
     @Transactional(readOnly = true)
     public List<DocumentListItemDto> getDocuments(int userId, int studyId) {
@@ -200,6 +220,11 @@ public class DocumentServiceImpl implements DocumentService{
             .toList();
     }
 
+    /**
+     * 입력: int userId, int documentId
+     * 출력: void
+     * 기능: 업로더 본인 또는 스터디 관리자가 문서를 삭제합니다.
+     */
     @Override
     @Transactional
     public void deleteDocument(int userId, int documentId) {

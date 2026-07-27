@@ -36,6 +36,11 @@ public class SummaryParser {
         }
     }
 
+    /**
+     * 입력: String json
+     * 출력: List<SummaryDto>
+     * 기능: JSON 문자열을 SummaryDto 리스트로 역직렬화합니다.
+     */
     private List<SummaryDto> doParse(String json) throws Exception {
         List<SummaryDto> list = objectMapper.readValue(json, new TypeReference<>() {});
         log.info("AI 응답 파싱 완료 ({} items)", list.size());

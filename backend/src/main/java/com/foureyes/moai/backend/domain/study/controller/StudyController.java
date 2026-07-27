@@ -34,6 +34,11 @@ public class StudyController {
         description = "스터디 이름, 설명, 대표 이미지를 등록하여 새 스터디를 생성합니다",
         security = @SecurityRequirement(name = "bearerAuth")
     )
+    /**
+     * 입력: CustomUserDetails user, CreateStudyRequest request
+     * 출력: StudyResponseDto
+     * 기능: 새로운 스터디 그룹을 생성합니다.
+     */
     @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StudyResponseDto> createStudy(
         @AuthenticationPrincipal CustomUserDetails user,
@@ -50,6 +55,11 @@ public class StudyController {
         description = "사용자가 특정 스터디에 가입 요청을 전송합니다",
         security = @SecurityRequirement(name = "bearerAuth")
     )
+    /**
+     * 입력: CustomUserDetails user, int studyId
+     * 출력: String(메시지)
+     * 기능: 사용자가 특정 스터디에 가입 요청을 전송합니다.
+     */
     @GetMapping("/join")
     public ResponseEntity<String> sendJoinRequest(
         @AuthenticationPrincipal CustomUserDetails user,
@@ -67,6 +77,11 @@ public class StudyController {
         description = "유저가 참여 중인 스터디의 모든 멤버 이름과 역할을 반환합니다.",
         security = @SecurityRequirement(name = "bearerAuth")
     )
+    /**
+     * 입력: CustomUserDetails user, int studyId
+     * 출력: List<StudyMemberListResponseDto>
+     * 기능: 유저가 참여 중인 스터디의 모든 멤버 이름과 역할을 조회합니다.
+     */
     @GetMapping("/{study_id}/members")
     public ResponseEntity<List<StudyMemberListResponseDto>> getMembers(
         @AuthenticationPrincipal CustomUserDetails user,
@@ -84,6 +99,11 @@ public class StudyController {
         description = "유저가 가입 혹은 신청한 스터디 목록을 반환합니다",
         security = @SecurityRequirement(name = "bearerAuth")
     )
+    /**
+     * 입력: CustomUserDetails user
+     * 출력: List<StudyListResponseDto>
+     * 기능: 유저가 가입 혹은 신청한 스터디 목록을 조회합니다.
+     */
     @GetMapping("/all")
     public ResponseEntity<List<StudyListResponseDto>> listUserStudies(
         @AuthenticationPrincipal CustomUserDetails user
@@ -100,6 +120,11 @@ public class StudyController {
         description = "유저가 스터디에서 탈퇴하여 상태를 LEFT 로 변경합니다.",
         security    = @SecurityRequirement(name = "bearerAuth")
     )
+    /**
+     * 입력: CustomUserDetails user, StudyIdRequestDto request
+     * 출력: void
+     * 기능: 유저가 스터디에서 탈퇴하여 상태를 LEFT로 변경합니다.
+     */
     @PatchMapping("/leave")
     public ResponseEntity<Void> leaveStudy(
         @AuthenticationPrincipal CustomUserDetails user,
@@ -115,6 +140,11 @@ public class StudyController {
         description = "관리자가 특정 유저를 스터디에서 강제 탈퇴시킵니다.",
         security    = @SecurityRequirement(name = "bearerAuth")
     )
+    /**
+     * 입력: CustomUserDetails user, StudyMemberDeleteRequestDto request
+     * 출력: void
+     * 기능: 관리자가 특정 유저를 스터디에서 강제 탈퇴시킵니다.
+     */
     @PatchMapping("/delete")
     public ResponseEntity<Void> deleteMember(
         @AuthenticationPrincipal CustomUserDetails user,
@@ -130,6 +160,11 @@ public class StudyController {
         description = "관리자가 특정 유저의 역할을 변경합니다. ADMIN 지정 시 기존 ADMIN은 MEMBER로 변경됩니다.",
         security    = @SecurityRequirement(name = "bearerAuth")
     )
+    /**
+     * 입력: CustomUserDetails user, StudyMemberRoleChangeRequestDto request
+     * 출력: void
+     * 기능: 관리자가 특정 유저의 역할을 변경합니다.
+     */
     @PatchMapping("/designate")
     public ResponseEntity<Void> designateMember(
         @AuthenticationPrincipal CustomUserDetails user,
@@ -145,6 +180,11 @@ public class StudyController {
         description = "관리자가 가입 요청 중인 유저를 거절하여 DB에서 멤버십을 삭제합니다.",
         security    = @SecurityRequirement(name = "bearerAuth")
     )
+    /**
+     * 입력: CustomUserDetails user, StudyMemberRejectRequestDto request
+     * 출력: void
+     * 기능: 관리자가 가입 요청 중인 유저를 거절합니다.
+     */
     @PatchMapping("/reject")
     public ResponseEntity<Void> rejectJoin(
         @AuthenticationPrincipal CustomUserDetails user,
@@ -160,6 +200,11 @@ public class StudyController {
         description = "관리자가 스터디 가입 요청을 승인하고 해당 유저의 상태를 PENDING→APPROVED로 변경합니다",
         security    = @SecurityRequirement(name = "bearerAuth")
     )
+    /**
+     * 입력: CustomUserDetails user, AcceptJoinRequestDto request
+     * 출력: void
+     * 기능: 관리자가 스터디 가입 요청을 승인하고 역할을 부여합니다.
+     */
     @PatchMapping("/accept")
     public ResponseEntity<Void> acceptJoin(
         @AuthenticationPrincipal CustomUserDetails user,
@@ -175,6 +220,11 @@ public class StudyController {
         description = "관리자가 자신의 스터디에 온 모든 가입 요청을 조회합니다.",
         security    = @SecurityRequirement(name = "bearerAuth")
     )
+    /**
+     * 입력: CustomUserDetails user, int studyId
+     * 출력: List<JoinRequestResponseDto>
+     * 기능: 관리자가 자신의 스터디에 온 모든 가입 요청을 조회합니다.
+     */
     @GetMapping("/list/management")
     public ResponseEntity<List<JoinRequestResponseDto>> getPendingRequests(
         @AuthenticationPrincipal CustomUserDetails user,
@@ -191,6 +241,11 @@ public class StudyController {
         description = "현재 로그인한 사용자가 참여 중인 모든 스터디 정보를 반환합니다.",
         security = @SecurityRequirement(name = "bearerAuth")
     )
+    /**
+     * 입력: CustomUserDetails user
+     * 출력: List<JoinStudyListResponseDto>
+     * 기능: 현재 로그인한 사용자가 참여 중인 모든 스터디 정보를 조회합니다.
+     */
     @GetMapping("/list")
     public ResponseEntity<List<JoinStudyListResponseDto>> getJoinedStudies(
         @AuthenticationPrincipal CustomUserDetails user
@@ -205,6 +260,11 @@ public class StudyController {
         description = "hashId로 스터디 상세 정보를 조회합니다. 상태/역할은 현재 사용자 기준입니다.",
         security = @SecurityRequirement(name = "bearerAuth")
     )
+    /**
+     * 입력: CustomUserDetails user, String hashId
+     * 출력: StudyDetailResponseDto
+     * 기능: hashId로 스터디 상세 정보를 조회합니다.
+     */
     @GetMapping("/detail")
     public ResponseEntity<StudyDetailResponseDto> getStudyDetailByHash(
         @AuthenticationPrincipal CustomUserDetails user,
@@ -221,6 +281,11 @@ public class StudyController {
         description = "studyId로 해당 스터디의 공지사항을 조회합니다. 승인된 멤버만 접근 가능합니다.",
         security = @SecurityRequirement(name = "bearerAuth")
     )
+    /**
+     * 입력: CustomUserDetails user, int studyId
+     * 출력: StudyNoticeResponseDto
+     * 기능: 승인된 멤버만 접근 가능한 스터디 공지사항을 조회합니다.
+     */
     @GetMapping("/notice")
     public ResponseEntity<StudyNoticeResponseDto> getStudyNotice(
         @AuthenticationPrincipal CustomUserDetails user,
@@ -237,6 +302,11 @@ public class StudyController {
         description = "승인된 관리자만 공지사항을 수정할 수 있습니다.",
         security = @SecurityRequirement(name = "bearerAuth")
     )
+    /**
+     * 입력: CustomUserDetails user, UpdateStudyNoticeRequestDto request
+     * 출력: String(메시지)
+     * 기능: 승인된 관리자가 스터디 공지사항을 수정합니다.
+     */
     @PatchMapping("/notice")
     public ResponseEntity<String> updateNotice(
         @AuthenticationPrincipal CustomUserDetails user,
@@ -252,6 +322,11 @@ public class StudyController {
             description = "승인된 관리자만 수정할 수 있습니다.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
+    /**
+     * 입력: int studyId, CustomUserDetails user, UpdateStudyRequestDto request
+     * 출력: String(메시지)
+     * 기능: 승인된 관리자가 스터디 정보를 수정합니다.
+     */
     @PatchMapping(path = "/{study_id}/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> updateGroup(
             @PathVariable("study_id") int studyId,

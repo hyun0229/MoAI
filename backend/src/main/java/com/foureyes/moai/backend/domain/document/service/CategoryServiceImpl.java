@@ -29,6 +29,7 @@ public class CategoryServiceImpl implements CategoryService {
     private final StudyMembershipRepository studyMembershipRepository;
     private final DocumentCategoryRepository documentCategoryRepository;
 
+    /** 스터디 관리자/대리자 권한을 확인하는 공통 메서드 */
     private void assertLeader(int userId, int studyId) {
         var leaderRoles = List.of(StudyMembership.Role.ADMIN, StudyMembership.Role.DELEGATE);
         boolean ok = studyMembershipRepository
@@ -38,6 +39,11 @@ public class CategoryServiceImpl implements CategoryService {
         if (!ok) throw new CustomException(ErrorCode.FORBIDDEN);
     }
 
+    /**
+     * 입력: int userId, CreateCategoryRequest req
+     * 출력: void
+     * 기능: 스터디 관리자가 커스텀 카테고리를 생성합니다.
+     */
     @Override
     public void createCategory(int userId, CreateCategoryRequest req) {
         if (req.getStudyId() == null || req.getCategoryName() == null || req.getCategoryName().isBlank()) {
@@ -61,6 +67,11 @@ public class CategoryServiceImpl implements CategoryService {
         categoryRepository.save(c); // 반환값 필요 없으므로 그대로 종료
     }
 
+    /**
+     * 입력: int userId, int categoryId, EditCategoryRequest req
+     * 출력: void
+     * 기능: 스터디 관리자가 카테고리 정보를 수정합니다.
+     */
     @Override
     public void editCategory(int userId, int categoryId, EditCategoryRequest req) {
         Category c = categoryRepository.findById(categoryId)
@@ -80,6 +91,11 @@ public class CategoryServiceImpl implements CategoryService {
         categoryRepository.save(c);
     }
 
+    /**
+     * 입력: int userId, int categoryId
+     * 출력: void
+     * 기능: 스터디 관리자가 카테고리를 삭제합니다.
+     */
     @Override
     public void deleteCategory(int userId, int categoryId) {
         Category c = categoryRepository.findById(categoryId)
@@ -91,6 +107,11 @@ public class CategoryServiceImpl implements CategoryService {
         categoryRepository.delete(c);
     }
 
+    /**
+     * 입력: int userId, int studyId
+     * 출력: List<CategoryItemDto>
+     * 기능: 해당 스터디의 커스텀 카테고리 목록을 조회합니다.
+     */
     @Override
     @Transactional(readOnly = true)
     public List<CategoryItemDto> getCategories(int userId, int studyId) {
