@@ -64,7 +64,7 @@ services:
       - shared-network
 
   mongo:
-    image: docker.io/bitnami/mongodb:8.0.9
+    image: docker.io/soldevelo/mongodb:8.0.13
     container_name: mongo
     restart: unless-stopped
     volumes:
